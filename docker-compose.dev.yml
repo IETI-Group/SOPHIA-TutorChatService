@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  app-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      target: development
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: pnpm run dev
+    restart: unless-stopped
+    # Se puede agregar más servicios de desarrollo aquí
+  database-dev:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: myapp_dev
+      POSTGRES_USER: dev_user
+      POSTGRES_PASSWORD: dev_password
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    restart: unless-stopped
+# Volúmenes para persistencia de datos
+volumes:
+  postgres_dev_data:
+  

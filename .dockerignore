@@ -1,0 +1,18 @@
+# Archivo .dockerignore para excluir archivos innecesarios
+node_modules
+npm-debug.log
+dist
+.git
+.gitignore
+README.md
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+coverage
+.nyc_output
+*.log
+.DS_Store
+Thumbs.db
+package-lock.json

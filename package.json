@@ -1,0 +1,44 @@
+{
+  "name": "nodejs-back-template",
+  "version": "1.0.0",
+  "description": "This is a template for Node.js backend projects with typescript.",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon",
+    "build": "tsc",
+    "start": "node dist/src/server.js",
+    "format": "pnpm exec biome format --write",
+    "lint": "pnpm exec biome lint --write",
+    "check": "pnpm exec biome check --write",
+    "test": "vitest",
+    "coverage": "vitest --coverage",
+    "doc": "typedoc --out docs ./src --entryPointStrategy expand"
+  },
+  "keywords": [
+    "nodejs",
+    "typescript",
+    "backend",
+    "template",
+    "nodemon",
+    "vitest",
+    "biome"
+  ],
+  "author": "Luk3",
+  "license": "ISC",
+  "packageManager": "pnpm@10.15.1",
+  "devDependencies": {
+    "@biomejs/biome": "2.2.2",
+    "@types/node": "24.3.1",
+    "@vitest/coverage-istanbul": "3.2.4",
+    "nodemon": "3.1.10",
+    "tsx": "4.20.5",
+    "typedoc": "0.28.12",
+    "typescript": "5.9.2",
+    "vitest": "3.2.4",
+    "vitest-mock-extended": "3.1.0"
+  },
+  "dependencies": {
+    "dotenv": "17.2.2"
+  }
+}

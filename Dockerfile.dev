@@ -1,0 +1,25 @@
+FROM node:24-alpine3.21 AS base
+
+RUN npm install -g pnpm
+
+WORKDIR /app
+
+COPY package.json pnpm-lock.yaml ./
+
+FROM base AS development
+RUN pnpm install
+COPY . .
+EXPOSE 3000
+CMD ["pnpm", "run", "dev"]
+
+FROM base AS build
+RUN pnpm install --frozen-lockfile
+COPY . .
+RUN pnpm run build
+
+FROM base AS production
+RUN pnpm install --prod --frozen-lockfile
+COPY --from=build /app/dist ./dist
+COPY --from=build /app/package.json ./
+EXPOSE 3000
+CMD ["pnpm", "start"]
