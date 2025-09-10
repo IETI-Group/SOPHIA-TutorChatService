@@ -1,48 +1,56 @@
-import { createServer } from 'node:http';
-import { config } from 'dotenv';
+import { config } from "dotenv";
+import app from "./app.js";
+import { logger } from "./utils/logger.js";
 
+// Cargar variables de entorno
 config();
 
 const PORT = process.env.PORT || 3000;
 
-const fibo = (n: number): number => {
-  if (n <= 1) return n;
-  return fibo(n - 1) + fibo(n - 2);
+// Manejo de excepciones no capturadas
+process.on("uncaughtException", (err: Error) => {
+  logger.error("Uncaught Exception:", err);
+  process.exit(1);
+});
+
+// Manejo de promesas rechazadas no capturadas
+process.on(
+  "unhandledRejection",
+  (reason: unknown, promise: Promise<unknown>) => {
+    logger.error("Unhandled Rejection at:", promise, "reason:", reason);
+    process.exit(1);
+  }
+);
+
+// Función para iniciar el servidor
+const startServer = (): void => {
+  try {
+    const server = app.listen(PORT, () => {
+      logger.info(`🚀 SOPHIA Tutor Chat Service started successfully`);
+      logger.info(`🌍 Environment: ${process.env.NODE_ENV || "development"}`);
+      logger.info(`📡 Server running on port ${PORT}`);
+      logger.info(`🔗 Health check: http://localhost:${PORT}/api/v1/health`);
+      logger.info(`🏠 Home: http://localhost:${PORT}/`);
+    });
+
+    // Graceful shutdown
+    const gracefulShutdown = (signal: string) => {
+      logger.info(`${signal} received. Starting graceful shutdown...`);
+      server.close(() => {
+        logger.info("Process terminated gracefully");
+        process.exit(0);
+      });
+    };
+
+    process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+    process.on("SIGINT", () => gracefulShutdown("SIGINT"));
+  } catch (error) {
+    logger.error("Failed to start server:", error);
+    process.exit(1);
+  }
 };
 
-// Servidor HTTP básico con Node.js nativo
-const server = createServer((req, res) => {
-  const url = new URL(req.url || '', `http://${req.headers.host}`);
+// Iniciar el servidor
+startServer();
 
-  res.writeHead(200, { 'Content-Type': 'application/json' });
-
-  if (url.pathname === '/fibonacci') {
-    const n = parseInt(url.searchParams.get('n') || '10', 10);
-    const result = fibo(n);
-    res.end(
-      JSON.stringify({
-        message: `Fibonacci of ${n} is: ${result}`,
-        value: result,
-        timestamp: new Date().toISOString(),
-      })
-    );
-  } else {
-    res.end(
-      JSON.stringify({
-        message: 'Hello from Node.js Backend!',
-        endpoints: ['/fibonacci?n=10'],
-        timestamp: new Date().toISOString(),
-        port: PORT,
-        environment: process.env.NODE_ENV || 'development',
-      })
-    );
-  }
-});
-
-server.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`📊 Try: http://localhost:${PORT}/fibonacci?n=10`);
-});
-export { fibo };
-export default server;
+export default app;
