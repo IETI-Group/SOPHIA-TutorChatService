@@ -1,0 +1,4 @@
+export const env = {
+    ollamaModel: process.env.OLLAMA_MODEL || "Llama2:7b-chat",
+    ollamaHost: process.env.OLLAMA_HOST || "http://localhost:11434",
+}
