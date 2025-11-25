@@ -7,7 +7,10 @@ export class AIController {
 		try {
 			if (!validateBody(req.body, ["message"], res)) return;
 			const response = await aiService.chat(req.body);
-			res.json(response);
+			res.json({
+				success: true,
+				...response,
+			});
 		} catch (error) {
 			next(error);
 		}

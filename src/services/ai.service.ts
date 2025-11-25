@@ -5,6 +5,7 @@ import { OllamaProvider } from "./ai/providers/ollama.provider.js";
 import { OpenAIProvider } from "./ai/providers/openai.provider.js";
 import { GeminiProvider } from "./ai/providers/gemini.provider.js";
 import type { AIProvider } from "./ai/providers/ai-provider.interface.js";
+import { ChatModel } from "../models/chat.model.js";
 
 class AIService {
 	private ollama: Ollama;
@@ -32,19 +33,75 @@ class AIService {
     try {
       const provider = this.getProvider(data.model);
       
-      // Si el usuario cambia de modelo y envía contexto numérico de otro modelo,
-      // esto fallará en Ollama. Para los otros providers, simplemente ignoramos el contexto numérico.
-      // Implementamos un retry simple para Ollama si falla por contexto inválido.
+      // Buscar o crear chat
+      let chat;
+      if (data.chatId) {
+        chat = await ChatModel.findById(data.chatId);
+        if (!chat) {
+          throw new Error(`Chat with id ${data.chatId} not found`);
+        }
+      } else {
+        // Crear nuevo chat
+        chat = new ChatModel({ 
+          messages: [],
+          model: data.model || env.ollamaModel,
+        });
+      }
+
+      // Determinar el modelo a usar (el enviado en la petición o el del chat)
+      const chatModelField = typeof (chat as any).get === "function"
+        ? (chat as any).get("model")
+        : (chat as any).model;
+      const modelToUse = (data.model ?? (typeof chatModelField === "string" ? chatModelField : undefined) ?? env.ollamaModel) as string;
+
+      // Guardar mensaje del usuario
+      chat.messages.push({
+        role: "user",
+        content: data.message,
+        model: modelToUse,
+        timestamp: new Date(),
+      });
+
+      // Generar respuesta del asistente
+      let aiResponse;
       try {
-        return await provider.generateResponse(data);
+        aiResponse = await provider.generateResponse(data);
       } catch (error) {
         // Si es Ollama y falla, intentamos sin contexto (reinicio de conversación)
         if (provider instanceof OllamaProvider && data.context && data.context.length > 0) {
           console.warn("Ollama failed with context, retrying without context...");
-          return await provider.generateResponse({ ...data, context: [] });
+          aiResponse = await provider.generateResponse({ ...data, context: [] });
+        } else {
+          throw error;
         }
-        throw error;
       }
+
+      // Guardar respuesta del asistente
+      chat.messages.push({
+        role: "assistant",
+        content: aiResponse.response,
+        model: modelToUse,
+        ...(aiResponse.context && { context: aiResponse.context }),
+        timestamp: new Date(),
+      });
+
+      // Actualizar el modelo del chat si cambió
+      if (data.model && data.model !== chatModelField) {
+        if (typeof (chat as any).set === "function") {
+          (chat as any).set('model', data.model);
+        } else {
+          (chat as any).model = data.model;
+        }
+      }
+
+      // Guardar chat en la base de datos
+      await chat.save();
+
+      return {
+        chatId: chat._id.toString(),
+        response: aiResponse.response,
+        context: aiResponse.context,
+      };
     } catch (error) {
       throw new Error(`AI Service Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }

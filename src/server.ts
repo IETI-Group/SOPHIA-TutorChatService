@@ -1,6 +1,7 @@
 import "dotenv/config";
 import app from "./app.js";
 import { logger } from "./utils/logger.js";
+import { connectDatabase } from "./config/database.js";
 
 
 const PORT = process.env.PORT || 3000;
@@ -24,6 +25,7 @@ process.on(
 const startServer = async (): Promise<void> => {
   try {
     // Conectar a la base de datos
+    await connectDatabase();
     
     const server = app.listen(PORT, () => {
       console.log(`🚀 SOPHIA Tutor Chat Service started successfully`);
