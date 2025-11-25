@@ -24,7 +24,10 @@ export class AIController {
 		try {
 			if (!validateBody(req.body, ["idea", "guide"], res)) return;
 			const response = await aiService.generateCourseStructure(req.body);
-			res.json(response);
+			res.json({
+				success: true,
+				...response,
+			});
 		} catch (error) {
 			next(error);
 		}

@@ -131,6 +131,12 @@ Obtiene una lista de todos los chats guardados en la base de datos.
 
 **Endpoint:** `GET /chats`
 
+#### Parámetros de Query (Opcionales)
+
+| Parámetro | Tipo | Descripción |
+|-----------|------|-------------|
+| `type` | string | Filtrar por tipo de chat: `chat` (conversaciones regulares) o `course` (generación de cursos) |
+
 #### Respuesta Exitosa
 
 **Código:** `200 OK`
@@ -138,23 +144,41 @@ Obtiene una lista de todos los chats guardados en la base de datos.
 ```json
 {
   "success": true,
-  "count": 1,
+  "count": 2,
   "data": [
     {
       "chatId": "6924ee716f476c51e6fc51df",
+      "model": "Llama2:7b-chat",
+      "chatType": "chat",
       "createdAt": "2025-11-24T23:47:04.596Z",
       "updatedAt": "2025-11-24T23:47:23.002Z",
       "messageCount": 4,
       "lastMessage": "La capital de Francia es París."
+    },
+    {
+      "chatId": "6924ee716f476c51e6fc51e0",
+      "model": "Llama2:7b-chat",
+      "chatType": "course",
+      "createdAt": "2025-11-24T23:50:00.000Z",
+      "updatedAt": "2025-11-24T23:50:15.000Z",
+      "messageCount": 2,
+      "lastMessage": "Título del Curso: Python para Data Science..."
     }
   ]
 }
 ```
 
-#### Ejemplo de Petición
+#### Ejemplos de Petición
 
 ```bash
+# Listar todos los chats
 curl http://localhost:3003/api/v1/chats
+
+# Listar solo chats regulares
+curl http://localhost:3003/api/v1/chats?type=chat
+
+# Listar solo chats de generación de cursos
+curl http://localhost:3003/api/v1/chats?type=course
 ```
 
 ---
@@ -180,15 +204,19 @@ Obtiene el historial completo de mensajes de un chat específico.
   "success": true,
   "data": {
     "chatId": "6924ee716f476c51e6fc51df",
+    "model": "Llama2:7b-chat",
+    "chatType": "chat",
     "messages": [
       {
         "role": "user",
         "content": "Hola, ¿cómo estás?",
+        "model": "Llama2:7b-chat",
         "timestamp": "2025-11-24T23:46:57.017Z"
       },
       {
         "role": "assistant",
         "content": "Hola! Estoy bien, gracias por preguntar.",
+        "model": "Llama2:7b-chat",
         "context": [123, 456, ...],
         "timestamp": "2025-11-24T23:47:04.592Z"
       }
@@ -260,7 +288,7 @@ curl -X DELETE http://localhost:3003/api/v1/chats/6924ee716f476c51e6fc51df
 
 ### 2. Asistente de Cursos
 
-Genera un esquema de curso estructurado y profesional basado en una idea y pautas de estilo.
+Genera un esquema de curso estructurado y profesional basado en una idea y pautas de estilo. Todos los cursos generados se guardan automáticamente en la base de datos con el tipo `course`.
 
 **Endpoint:** `POST /course-assistant`
 
@@ -270,14 +298,26 @@ Genera un esquema de curso estructurado y profesional basado en una idea y pauta
 |-------|------|----------|-------------|
 | `idea` | string | Sí | El concepto central o tema del curso. |
 | `guide` | string | Sí | Pautas estructurales, audiencia objetivo o requisitos específicos. |
-| `model` | string | No | El modelo de IA a utilizar (ej: `llama3.2`, `mistral`). Si no se envía, usa el configurado por defecto. |
+| `model` | string | No | El modelo de IA a utilizar (ej: `Llama2:7b-chat`, `deepseek-r1:7b`, `gemini-2.0-flash`). Si no se envía, usa el configurado por defecto. |
+| `chatId` | string | No | ID de un chat de curso existente para continuar refinando el curso. |
 
-#### Ejemplo de Petición
+#### Ejemplo de Petición (Nuevo Curso)
 
 ```json
 {
   "idea": "Introducción a la Programación en Python para Ciencia de Datos",
-  "guide": "La audiencia objetivo son principiantes. Incluir 4 módulos principales. Enfocarse en ejemplos prácticos."
+  "guide": "La audiencia objetivo son principiantes. Incluir 4 módulos principales. Enfocarse en ejemplos prácticos.",
+  "model": "Llama2:7b-chat"
+}
+```
+
+#### Ejemplo de Petición (Refinar Curso Existente)
+
+```json
+{
+  "idea": "Agregar más ejercicios prácticos al módulo 2",
+  "guide": "Ejercicios hands-on con datasets reales",
+  "chatId": "6924ee716f476c51e6fc51e0"
 }
 ```
 
@@ -287,8 +327,44 @@ Genera un esquema de curso estructurado y profesional basado en una idea y pauta
 
 ```json
 {
+  "success": true,
+  "chatId": "6924ee716f476c51e6fc51e0",
   "response": "Título del Curso: Python para Ciencia de Datos\n\nMódulo 1: Fundamentos de Python\n- Lección 1.1: Instalación y Configuración\n- Lección 1.2: Variables y Tipos de Datos..."
 }
+```
+
+#### Notas Importantes
+
+- Los cursos generados se guardan con `chatType: "course"` para distinguirlos de chats regulares.
+- Puedes continuar refinando un curso existente usando el `chatId` devuelto.
+- Para ver todos los cursos generados: `GET /api/v1/chats?type=course`
+- Para ver el historial completo de un curso: `GET /api/v1/chats/:chatId`
+
+#### Ejemplo de Flujo Completo
+
+```bash
+# 1. Generar curso inicial
+curl -X POST http://localhost:3003/api/v1/ai/course-assistant \
+  -H "Content-Type: application/json" \
+  -d '{
+    "idea": "Curso de Machine Learning",
+    "guide": "Nivel intermedio, 6 semanas, incluir proyectos"
+  }'
+
+# Respuesta incluye chatId
+# {"success": true, "chatId": "abc123...", "response": "..."}
+
+# 2. Refinar el curso
+curl -X POST http://localhost:3003/api/v1/ai/course-assistant \
+  -H "Content-Type: application/json" \
+  -d '{
+    "idea": "Añadir más contenido sobre redes neuronales",
+    "guide": "Profundizar en CNNs y RNNs",
+    "chatId": "abc123..."
+  }'
+
+# 3. Ver historial del curso
+curl http://localhost:3003/api/v1/chats/abc123...
 ```
 
 #### Respuesta de Error
@@ -395,3 +471,75 @@ El servicio requiere MongoDB para almacenar el historial de conversaciones:
    # Connection string
    MONGO_URI=mongodb://localhost:27017/sophia-chats
    ```
+
+### 5. Iniciar el Servicio
+
+```bash
+# Instalar dependencias
+pnpm install
+
+# Modo desarrollo (con hot-reload)
+pnpm dev
+
+# Modo producción
+pnpm build
+pnpm start
+```
+
+### 6. Verificar el Servicio
+
+Una vez iniciado el servidor, verifica que todo funcione correctamente:
+
+```bash
+# Health check
+curl http://localhost:3003/api/v1/health
+
+# Verificar conexión a MongoDB
+# Deberías ver en los logs: "Connected to MongoDB"
+
+# Probar chat básico
+curl -X POST http://localhost:3003/api/v1/ai/chat \
+  -H "Content-Type: application/json" \
+  -d '{"message":"Hola, ¿funciona el servicio?"}'
+
+# Listar chats
+curl http://localhost:3003/api/v1/chats
+```
+
+---
+
+## 📝 Resumen de Endpoints
+
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| POST | `/api/v1/ai/chat` | Conversación con IA (guarda historial) |
+| POST | `/api/v1/ai/course-assistant` | Generar estructura de curso |
+| GET | `/api/v1/chats` | Listar todos los chats |
+| GET | `/api/v1/chats?type=chat` | Listar solo conversaciones |
+| GET | `/api/v1/chats?type=course` | Listar solo cursos generados |
+| GET | `/api/v1/chats/:id` | Obtener historial de un chat |
+| DELETE | `/api/v1/chats/:id` | Eliminar un chat |
+| GET | `/api/v1/health` | Estado del servicio |
+
+---
+
+## 🔧 Solución de Problemas
+
+### Error: "MongoDB connection error"
+- Verifica que `MONGO_URI` esté correctamente configurado en `.env`
+- Asegúrate de que tu IP esté en la whitelist de MongoDB Atlas
+- Verifica que las credenciales sean correctas
+
+### Error: "AI Service Error: fetch failed"
+- Para Ollama: Asegúrate de que Ollama esté corriendo (`curl http://127.0.0.1:11434`)
+- Para OpenAI: Verifica que `OPENAI_API_KEY` sea válida
+- Para Gemini: Verifica que `GEMINI_API_KEY` sea válida
+
+### Error: "Chat not found"
+- Verifica que el `chatId` sea correcto
+- El chat puede haber sido eliminado
+
+### Error: "API key not valid"
+- Para OpenAI: Obtén una nueva key en [platform.openai.com](https://platform.openai.com)
+- Para Gemini: Obtén una nueva key en [Google AI Studio](https://aistudio.google.com/app/apikey)
+- Reinicia el servidor después de actualizar las keys en `.env`

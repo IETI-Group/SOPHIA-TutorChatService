@@ -4,12 +4,19 @@ import { ChatModel } from "../models/chat.model.js";
 export class ChatController {
   /**
    * Get all chats
-   * GET /api/v1/chats
+   * GET /api/v1/chats?type=chat|course
    */
   async listChats(req: Request, res: Response, next: NextFunction) {
     try {
-      const chats = await ChatModel.find()
-        .select("_id createdAt updatedAt messages")
+      const { type } = req.query;
+      const filter: any = {};
+      
+      if (type && (type === "chat" || type === "course")) {
+        filter.chatType = type;
+      }
+
+      const chats = await ChatModel.find(filter)
+        .select("_id createdAt updatedAt messages modelName chatType")
         .sort({ updatedAt: -1 })
         .limit(100);
 
@@ -18,7 +25,8 @@ export class ChatController {
         count: chats.length,
         data: chats.map((chat) => ({
           chatId: chat._id,
-          model: chat.get('model'),
+          model: chat.modelName,
+          chatType: chat.chatType,
           createdAt: chat.createdAt,
           updatedAt: chat.updatedAt,
           messageCount: chat.messages.length,
@@ -51,7 +59,8 @@ export class ChatController {
         success: true,
         data: {
           chatId: chat._id,
-          model: chat.get('model'),
+          model: chat.modelName,
+          chatType: chat.chatType,
           messages: chat.messages,
           createdAt: chat.createdAt,
           updatedAt: chat.updatedAt,

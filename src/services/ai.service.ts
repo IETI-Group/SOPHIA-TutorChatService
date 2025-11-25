@@ -44,14 +44,14 @@ class AIService {
         // Crear nuevo chat
         chat = new ChatModel({ 
           messages: [],
-          model: data.model || env.ollamaModel,
+          modelName: data.model || env.ollamaModel,
         });
       }
 
       // Determinar el modelo a usar (el enviado en la petición o el del chat)
       const chatModelField = typeof (chat as any).get === "function"
-        ? (chat as any).get("model")
-        : (chat as any).model;
+        ? (chat as any).get("modelName")
+        : (chat as any).modelName;
       const modelToUse = (data.model ?? (typeof chatModelField === "string" ? chatModelField : undefined) ?? env.ollamaModel) as string;
 
       // Guardar mensaje del usuario
@@ -88,9 +88,9 @@ class AIService {
       // Actualizar el modelo del chat si cambió
       if (data.model && data.model !== chatModelField) {
         if (typeof (chat as any).set === "function") {
-          (chat as any).set('model', data.model);
+          (chat as any).set('modelName', data.model);
         } else {
-          (chat as any).model = data.model;
+          (chat as any).modelName = data.model;
         }
       }
 
@@ -106,7 +106,30 @@ class AIService {
       throw new Error(`AI Service Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }	async generateCourseStructure(data: CourseAssistantDto) {
-		const prompt = `
+		try {
+      // Buscar o crear chat de tipo course
+      let chat;
+      if (data.chatId) {
+        chat = await ChatModel.findById(data.chatId);
+        if (!chat) {
+          throw new Error(`Course chat with id ${data.chatId} not found`);
+        }
+        if (chat.chatType !== "course") {
+          throw new Error(`Chat ${data.chatId} is not a course chat`);
+        }
+      } else {
+        // Crear nuevo chat de tipo course
+        chat = new ChatModel({ 
+          messages: [],
+          modelName: data.model || env.ollamaModel,
+          chatType: "course",
+        });
+      }
+
+      const modelToUse = data.model || chat.modelName || env.ollamaModel;
+
+      // Crear el prompt
+      const prompt = `
       Act as a Senior Curriculum Developer and Instructional Designer. Your goal is to create a professional, high-quality course outline optimized for student learning and engagement.
 
       Course Concept: "${data.idea}"
@@ -120,12 +143,38 @@ class AIService {
       Return ONLY the structured course outline, ready for implementation.
     `;
 
-		try {
-			const response = await this.ollama.chat({
-				model: data.model || env.ollamaModel,
-				messages: [{ role: "user", content: prompt }],
-			});
-			return { response: response.message.content };
+      // Guardar mensaje del usuario (idea + guide)
+      chat.messages.push({
+        role: "user",
+        content: `Course Idea: ${data.idea}\n\nGuidelines: ${data.guide}`,
+        model: modelToUse,
+        timestamp: new Date(),
+      });
+
+      // Obtener el proveedor correcto basado en el modelo
+      const courseProvider = this.getProvider(modelToUse);
+      
+      // Generar respuesta usando el proveedor seleccionado
+      const aiResponse = await courseProvider.generateResponse({
+        message: prompt,
+        model: modelToUse,
+      });
+
+      // Guardar respuesta del asistente
+      chat.messages.push({
+        role: "assistant",
+        content: aiResponse.response,
+        model: modelToUse,
+        timestamp: new Date(),
+      });
+
+      // Guardar chat en la base de datos
+      await chat.save();
+
+			return { 
+        chatId: chat._id.toString(),
+        response: aiResponse.response
+      };
 		} catch (error) {
 			throw new Error(
 				`AI Service Error: ${error instanceof Error ? error.message : "Unknown error"}`,
