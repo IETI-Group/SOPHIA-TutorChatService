@@ -1,7 +1,40 @@
 import type { Request, Response, NextFunction } from "express";
 import { ChatModel } from "../models/chat.model.js";
+import { aiService } from "../services/ai.service.js";
 
-export class ChatController {
+class ChatController {
+  /**
+   * Send a message to a chat
+   * POST /api/v1/chats/message
+   */
+  async sendMessage(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { chatId, message, model, context } = req.body;
+
+      if (!message) {
+        res.status(400).json({
+          success: false,
+          error: "Message is required",
+        });
+        return;
+      }
+
+      const result = await aiService.chat({
+        chatId,
+        message,
+        model,
+        context,
+      });
+
+      res.json({
+        success: true,
+        data: result,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   /**
    * Get all chats
    * GET /api/v1/chats?type=chat|course

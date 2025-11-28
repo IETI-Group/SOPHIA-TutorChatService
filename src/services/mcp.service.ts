@@ -195,15 +195,11 @@ class MCPService {
   }
 
   /**
-   * List all available MCP tools
+   * List all available MCP tools with full schemas
    */
-  async listAvailableTools(): Promise<Array<{ name: string; description?: string | undefined }>> {
+  async listAvailableTools(): Promise<Array<{ name: string; description?: string | undefined; inputSchema?: any }>> {
     await this.ensureInitialized();
-    const tools = await this.mcpClient.listTools();
-    return tools.map(tool => ({
-      name: tool.name,
-      description: tool.description,
-    }));
+    return await this.mcpClient.listTools();
   }
 
   /**
