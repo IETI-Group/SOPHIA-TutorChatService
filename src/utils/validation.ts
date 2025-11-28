@@ -1,4 +1,5 @@
 import type { Response } from "express";
+import type { z } from "zod";
 
 export const validateParams = (
 	params: Record<string, string | undefined>,
@@ -33,4 +34,17 @@ export const validateBody = (
 		}
 	}
 	return true;
+};
+
+/**
+ * Validate request body using Zod schema
+ * Throws an error if validation fails
+ */
+export const validateSchema = <T>(schema: z.ZodSchema<T>, data: unknown): T => {
+	const result = schema.safeParse(data);
+	if (!result.success) {
+		const errors = result.error.issues.map((err: any) => `${err.path.join(".")}: ${err.message}`).join(", ");
+		throw new Error(`Validation error: ${errors}`);
+	}
+	return result.data;
 };
