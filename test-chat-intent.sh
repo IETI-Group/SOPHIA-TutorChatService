@@ -23,7 +23,7 @@ echo -e "${YELLOW}Step 1: Discussing course idea...${NC}"
 RESPONSE=$(curl -s -X POST $BASE_URL/ai/chat \
   -H "Content-Type: application/json" \
   -d '{
-    "message": "Quiero diseñar un curso de Introducción a React. ¿Qué temas sugieres?",
+    "message": "Quiero diseñar un curso de Introducción a cobol. ¿Qué temas sugieres?",
     "model": "gemini-2.0-flash"
   }')
 
