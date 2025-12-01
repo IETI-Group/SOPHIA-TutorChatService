@@ -552,7 +552,7 @@ Create the course, sections, and lessons now.
       
       // 5. BUCLE DEL AGENTE PARA GEMINI
       let loops = 0;
-      const MAX_LOOPS = 20;
+      const MAX_LOOPS = 60;
       const executionLog: Array<{ tool: string; args: any; result: any }> = [];
 
       while (loops < MAX_LOOPS) {
