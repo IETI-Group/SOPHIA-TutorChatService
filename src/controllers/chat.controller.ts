@@ -49,7 +49,7 @@ class ChatController {
       }
 
       const chats = await ChatModel.find(filter)
-        .select("_id createdAt updatedAt messages modelName chatType")
+        .select("_id createdAt updatedAt messages modelName chatType courseId")
         .sort({ updatedAt: -1 })
         .limit(100);
 
@@ -60,6 +60,7 @@ class ChatController {
           chatId: chat._id,
           model: chat.modelName,
           chatType: chat.chatType,
+          courseId: chat.courseId,
           createdAt: chat.createdAt,
           updatedAt: chat.updatedAt,
           messageCount: chat.messages.length,
@@ -94,6 +95,7 @@ class ChatController {
           chatId: chat._id,
           model: chat.modelName,
           chatType: chat.chatType,
+          courseId: chat.courseId,
           messages: chat.messages,
           createdAt: chat.createdAt,
           updatedAt: chat.updatedAt,

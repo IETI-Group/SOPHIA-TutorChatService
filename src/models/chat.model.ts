@@ -16,6 +16,7 @@ export interface ChatDocument extends Document {
   messages: ChatMessage[];
   modelName?: string; // Main model used in this chat
   chatType: ChatType; // Type of chat: regular chat or course generation
+  courseId?: string; // ID of the course created (only for chatType: 'course')
   createdAt: Date;
   updatedAt: Date;
 }
@@ -36,6 +37,7 @@ const ChatSchema = new Schema<ChatDocument>(
     messages: { type: [MessageSchema], default: [] },
     modelName: { type: String }, // Main model used in this chat
     chatType: { type: String, enum: ["chat", "course"], default: "chat" },
+    courseId: { type: String }, // ID of the course created (only for chatType: 'course')
   },
   { 
     timestamps: true,

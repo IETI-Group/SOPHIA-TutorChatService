@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { chatToCourseController } from '../controllers/chat-to-course.controller';
 
-const router = Router();
+const router:Router = Router();
 
 /**
  * @route POST /api/v1/chat-to-course/convert

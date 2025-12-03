@@ -121,6 +121,160 @@ curl -X POST http://localhost:3003/api/v1/ai/chat \
 
 ---
 
+### 🎯 Creación Automática de Cursos (Agent Loop)
+
+El endpoint de chat incluye una funcionalidad de **detección de intención** que permite crear cursos automáticamente cuando el usuario lo solicita explícitamente.
+
+#### ¿Cómo Funciona?
+
+1. **Conversación Normal**: El usuario conversa con la IA sobre el curso que desea crear (temas, estructura, nivel, etc.)
+2. **Trigger de Creación**: Cuando el usuario está listo, envía un mensaje con una frase de activación
+3. **Agent Loop**: El sistema ejecuta automáticamente el bucle de agente que crea el curso, secciones, lecciones y contenido en el Course Service
+4. **Cambio de Tipo**: El chat se marca automáticamente como `chatType: "course"` y se guarda el `courseId`
+
+#### Frases de Activación (Triggers)
+
+El sistema detecta las siguientes frases para iniciar la creación del curso:
+
+- `"crear el curso"` / `"create the course"`
+- `"generar el curso"` / `"generate the course"`
+- `"crear curso"` / `"create course"`
+- `"haz el curso"` / `"make the course"`
+- `"construir el curso"` / `"build the course"`
+- `"implementar el curso"`
+
+#### Ejemplo de Flujo Completo
+
+**Paso 1: Discutir la idea del curso**
+```bash
+curl -X POST http://localhost:3003/api/v1/ai/chat \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Quiero crear un curso de introducción a Java"}'
+```
+
+**Respuesta:**
+```json
+{
+  "success": true,
+  "chatId": "6924ee716f476c51e6fc51df",
+  "response": "¡Excelente idea! Un curso de Java es muy valioso. Te sugiero incluir los siguientes temas..."
+}
+```
+
+**Paso 2: Refinar la estructura**
+```bash
+curl -X POST http://localhost:3003/api/v1/ai/chat \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Me gustaría que tenga 3 secciones: fundamentos, POO y proyectos prácticos", "chatId": "6924ee716f476c51e6fc51df"}'
+```
+
+**Paso 3: Solicitar la creación (Trigger)**
+```bash
+curl -X POST http://localhost:3003/api/v1/ai/chat \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Perfecto, por favor crear el curso ahora", "chatId": "6924ee716f476c51e6fc51df"}'
+```
+
+**Respuesta (con Agent Loop):**
+```json
+{
+  "success": true,
+  "chatId": "6924ee716f476c51e6fc51df",
+  "response": "¡Entendido! He iniciado la creación del curso basado en nuestra conversación.\n\n✅ **Curso Creado Exitosamente**\n\n📊 **Resumen:**\n- **ID del Curso:** eadd33af-36e4-429a-baf7-b963dc2aaa88\n- **Secciones creadas:** 3\n- **Lecciones creadas:** 9\n\n...",
+  "context": [],
+  "agentExecution": {
+    "success": true,
+    "finalResponse": "El curso ha sido creado exitosamente...",
+    "executionLog": [
+      {
+        "tool": "create_course",
+        "args": { "title": "Introducción a Java", "level": "BEGINNER", ... },
+        "result": { "success": true, "data": { "idCourse": "eadd33af-36e4-429a-baf7-b963dc2aaa88", ... } }
+      },
+      {
+        "tool": "create_section",
+        "args": { "courseId": "eadd33af-36e4-429a-baf7-b963dc2aaa88", "title": "Fundamentos", ... },
+        "result": { "success": true, "data": { "idSection": "34c42b87-f81a-47a2-9134-5dbb1f5a0315", ... } }
+      }
+      // ... más herramientas ejecutadas
+    ],
+    "iterations": 15,
+    "toolsExecuted": 15
+  }
+}
+```
+
+#### Cambios en el Chat Después de la Creación
+
+Cuando se crea un curso exitosamente, el documento del chat se actualiza con:
+
+| Campo | Valor | Descripción |
+|-------|-------|-------------|
+| `chatType` | `"course"` | Indica que este chat resultó en la creación de un curso |
+| `courseId` | `"eadd33af-..."` | ID del curso creado en el Course Service |
+
+#### Consultar Chats con Cursos Creados
+
+```bash
+# Listar solo chats que tienen cursos creados
+curl http://localhost:3003/api/v1/chats?type=course
+```
+
+**Respuesta:**
+```json
+{
+  "success": true,
+  "count": 1,
+  "data": [
+    {
+      "chatId": "6924ee716f476c51e6fc51df",
+      "model": "gemini-2.0-flash",
+      "chatType": "course",
+      "courseId": "eadd33af-36e4-429a-baf7-b963dc2aaa88",
+      "createdAt": "2025-12-03T10:00:00.000Z",
+      "updatedAt": "2025-12-03T10:05:00.000Z",
+      "messageCount": 6,
+      "lastMessage": "¡Entendido! He iniciado la creación del curso..."
+    }
+  ]
+}
+```
+
+#### Obtener Detalle de un Chat con Curso
+
+```bash
+curl http://localhost:3003/api/v1/chats/6924ee716f476c51e6fc51df
+```
+
+**Respuesta:**
+```json
+{
+  "success": true,
+  "data": {
+    "chatId": "6924ee716f476c51e6fc51df",
+    "model": "gemini-2.0-flash",
+    "chatType": "course",
+    "courseId": "eadd33af-36e4-429a-baf7-b963dc2aaa88",
+    "messages": [
+      { "role": "user", "content": "Quiero crear un curso de introducción a Java", ... },
+      { "role": "assistant", "content": "¡Excelente idea!...", ... },
+      { "role": "user", "content": "Perfecto, por favor crear el curso ahora", ... },
+      { "role": "assistant", "content": "¡Entendido! He iniciado la creación...", "model": "gemini-2.0-flash", ... }
+    ],
+    "createdAt": "2025-12-03T10:00:00.000Z",
+    "updatedAt": "2025-12-03T10:05:00.000Z"
+  }
+}
+```
+
+#### Notas Importantes
+
+- El Agent Loop utiliza **Gemini 2.0 Flash** independientemente del modelo con el que se estaba conversando, ya que es el único que soporta function calling para las herramientas MCP.
+- El campo `agentExecution` en la respuesta contiene todo el log de ejecución del Agent Loop, útil para debugging.
+- Si el Agent Loop falla parcialmente, el `courseId` se guardará igualmente si al menos el curso fue creado.
+
+---
+
 ## 📚 Gestión de Historial de Chats
 
 URL Base: `/api/v1/chats`
@@ -150,6 +304,7 @@ Obtiene una lista de todos los chats guardados en la base de datos.
       "chatId": "6924ee716f476c51e6fc51df",
       "model": "Llama2:7b-chat",
       "chatType": "chat",
+      "courseId": null,
       "createdAt": "2025-11-24T23:47:04.596Z",
       "updatedAt": "2025-11-24T23:47:23.002Z",
       "messageCount": 4,
@@ -157,12 +312,13 @@ Obtiene una lista de todos los chats guardados en la base de datos.
     },
     {
       "chatId": "6924ee716f476c51e6fc51e0",
-      "model": "Llama2:7b-chat",
+      "model": "gemini-2.0-flash",
       "chatType": "course",
+      "courseId": "eadd33af-36e4-429a-baf7-b963dc2aaa88",
       "createdAt": "2025-11-24T23:50:00.000Z",
       "updatedAt": "2025-11-24T23:50:15.000Z",
-      "messageCount": 2,
-      "lastMessage": "Título del Curso: Python para Data Science..."
+      "messageCount": 6,
+      "lastMessage": "¡Entendido! He iniciado la creación del curso..."
     }
   ]
 }
@@ -206,6 +362,7 @@ Obtiene el historial completo de mensajes de un chat específico.
     "chatId": "6924ee716f476c51e6fc51df",
     "model": "Llama2:7b-chat",
     "chatType": "chat",
+    "courseId": null,
     "messages": [
       {
         "role": "user",
@@ -226,6 +383,8 @@ Obtiene el historial completo de mensajes de un chat específico.
   }
 }
 ```
+
+> **Nota:** Para chats de tipo `course`, el campo `courseId` contendrá el ID del curso creado en el Course Service.
 
 #### Respuesta de Error
 

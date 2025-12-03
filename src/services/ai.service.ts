@@ -230,6 +230,13 @@ Create the course, sections, and lessons now.
           timestamp: new Date(),
         });
 
+        // Mark chat as 'course' type and save the courseId
+        const courseId = result.executionLog.find((l: any) => l.tool === 'create_course' && l.result?.success)?.result?.data?.idCourse;
+        chat.chatType = "course";
+        if (courseId) {
+          chat.courseId = courseId;
+        }
+
         await chat.save();
 
         return {
