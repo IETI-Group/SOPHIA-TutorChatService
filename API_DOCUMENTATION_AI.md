@@ -4,6 +4,40 @@ Esta documentación detalla cómo configurar, ejecutar y utilizar los servicios 
 
 ---
 
+## 🔐 Autenticación
+
+Todos los endpoints (excepto `/health` y `/auth`) requieren autenticación mediante token JWT.
+
+**Header requerido:**
+```
+Authorization: Bearer <token>
+```
+
+**Ejemplo:**
+```bash
+curl -X POST http://localhost:3003/api/v1/ai/chat \
+  -H "Authorization: Bearer eyJraWQiOiI1S2VpK2p3d0JuRUxL..." \
+  -H "Content-Type: application/json" \
+  -d '{"message":"Hola"}'
+```
+
+**Errores de Autenticación:**
+
+| Código | Error | Descripción |
+|--------|-------|-------------|
+| 401 | UNAUTHORIZED | Token no proporcionado o inválido |
+
+**Respuesta (401):**
+```json
+{
+  "success": false,
+  "message": "No authorization token provided",
+  "error": "UNAUTHORIZED"
+}
+```
+
+---
+
 ## 📡 Endpoints de la API
 
 URL Base: `/api/v1/ai`
@@ -77,6 +111,7 @@ Permite interactuar con el modelo de IA. Todos los mensajes se guardan automáti
 **Paso 1: Primera Pregunta (Sin chatId)**
 ```bash
 curl -X POST http://localhost:3003/api/v1/ai/chat \
+  -H "Authorization: Bearer eyJraWQiOiI1S2VpK2p3d0JuRUxL..." \
   -H "Content-Type: application/json" \
   -d '{"message":"¿Por qué el cielo es azul?"}'
 ```
@@ -94,6 +129,7 @@ curl -X POST http://localhost:3003/api/v1/ai/chat \
 **Paso 2: Segunda Pregunta (Con chatId para continuar)**
 ```bash
 curl -X POST http://localhost:3003/api/v1/ai/chat \
+  -H "Authorization: Bearer eyJraWQiOiI1S2VpK2p3d0JuRUxL..." \
   -H "Content-Type: application/json" \
   -d '{"message":"¿Y por qué se pone rojo al atardecer?","chatId":"6924ee716f476c51e6fc51df"}'
 ```
@@ -148,6 +184,7 @@ El sistema detecta las siguientes frases para iniciar la creación del curso:
 **Paso 1: Discutir la idea del curso**
 ```bash
 curl -X POST http://localhost:3003/api/v1/ai/chat \
+  -H "Authorization: Bearer eyJraWQiOiI1S2VpK2p3d0JuRUxL..." \
   -H "Content-Type: application/json" \
   -d '{"message": "Quiero crear un curso de introducción a Java"}'
 ```
@@ -164,6 +201,7 @@ curl -X POST http://localhost:3003/api/v1/ai/chat \
 **Paso 2: Refinar la estructura**
 ```bash
 curl -X POST http://localhost:3003/api/v1/ai/chat \
+  -H "Authorization: Bearer eyJraWQiOiI1S2VpK2p3d0JuRUxL..." \
   -H "Content-Type: application/json" \
   -d '{"message": "Me gustaría que tenga 3 secciones: fundamentos, POO y proyectos prácticos", "chatId": "6924ee716f476c51e6fc51df"}'
 ```
@@ -171,6 +209,7 @@ curl -X POST http://localhost:3003/api/v1/ai/chat \
 **Paso 3: Solicitar la creación (Trigger)**
 ```bash
 curl -X POST http://localhost:3003/api/v1/ai/chat \
+  -H "Authorization: Bearer eyJraWQiOiI1S2VpK2p3d0JuRUxL..." \
   -H "Content-Type: application/json" \
   -d '{"message": "Perfecto, por favor crear el curso ahora", "chatId": "6924ee716f476c51e6fc51df"}'
 ```
@@ -504,6 +543,7 @@ Genera un esquema de curso estructurado y profesional basado en una idea y pauta
 ```bash
 # 1. Generar curso inicial
 curl -X POST http://localhost:3003/api/v1/ai/course-assistant \
+  -H "Authorization: Bearer eyJraWQiOiI1S2VpK2p3d0JuRUxL..." \
   -H "Content-Type: application/json" \
   -d '{
     "idea": "Curso de Machine Learning",
@@ -515,6 +555,7 @@ curl -X POST http://localhost:3003/api/v1/ai/course-assistant \
 
 # 2. Refinar el curso
 curl -X POST http://localhost:3003/api/v1/ai/course-assistant \
+  -H "Authorization: Bearer eyJraWQiOiI1S2VpK2p3d0JuRUxL..." \
   -H "Content-Type: application/json" \
   -d '{
     "idea": "Añadir más contenido sobre redes neuronales",
@@ -523,7 +564,8 @@ curl -X POST http://localhost:3003/api/v1/ai/course-assistant \
   }'
 
 # 3. Ver historial del curso
-curl http://localhost:3003/api/v1/chats/abc123...
+curl -H "Authorization: Bearer eyJraWQiOiI1S2VpK2p3d0JuRUxL..." \
+  http://localhost:3003/api/v1/chats/abc123...
 ```
 
 #### Respuesta de Error
@@ -658,11 +700,13 @@ curl http://localhost:3003/api/v1/health
 
 # Probar chat básico
 curl -X POST http://localhost:3003/api/v1/ai/chat \
+  -H "Authorization: Bearer eyJraWQiOiI1S2VpK2p3d0JuRUxL..." \
   -H "Content-Type: application/json" \
   -d '{"message":"Hola, ¿funciona el servicio?"}'
 
 # Listar chats
-curl http://localhost:3003/api/v1/chats
+curl -H "Authorization: Bearer eyJraWQiOiI1S2VpK2p3d0JuRUxL..." \
+  http://localhost:3003/api/v1/chats
 ```
 
 ---
