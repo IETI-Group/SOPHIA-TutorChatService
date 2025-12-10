@@ -3,4 +3,5 @@ export interface ChatRequestDto {
   context?: number[];
   model?: string;
   chatId?: string; // Optional: id of an existing chat to continue
+  userId?: string; // Optional: id del usuario autenticado para course creation
 }
