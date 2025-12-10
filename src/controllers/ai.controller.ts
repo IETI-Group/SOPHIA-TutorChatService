@@ -1,12 +1,24 @@
 import type { NextFunction, Request, Response } from "express";
 import { aiService } from "../services/ai.service.js";
+import { coordinatorService } from "../services/coordinator.service.js";
 import { validateBody } from "../utils/validation";
 
 export class AIController {
 	async chat(req: Request, res: Response, next: NextFunction) {
 		try {
 			if (!validateBody(req.body, ["message"], res)) return;
-			const response = await aiService.chat(req.body);
+			
+			// Obtener userId del token autenticado
+			let userId: string | undefined;
+			if (req.token) {
+				try {
+					userId = await coordinatorService.getUserId(req.token);
+				} catch (error) {
+					console.warn('No se pudo obtener userId del coordinador, continuando sin él:', error);
+				}
+			}
+			
+			const response = await aiService.chat({ ...req.body, userId });
 			res.json({
 				success: true,
 				...response,

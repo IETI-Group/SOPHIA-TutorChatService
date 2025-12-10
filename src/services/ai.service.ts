@@ -207,7 +207,8 @@ Create the course, sections, and lessons now.
         // We use Gemini even if the chat was with Llama2, because we need tool calling capabilities
         const result = await this.generateCourseWithGemini(
           agentPrompt, 
-          "gemini-2.0-flash"
+          "gemini-2.0-flash",
+          data.userId // Pass user ID as instructor ID for course creation
         );
 
         // Format the result message

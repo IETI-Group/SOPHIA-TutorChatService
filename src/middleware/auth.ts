@@ -15,6 +15,7 @@ declare global {
         phoneNumberVerified?: boolean;
         groups?: string[];
       };
+      token?: string;
     }
   }
 }
@@ -46,6 +47,7 @@ export const authenticate = async (
 
     if (response.data?.data?.valid && response.data?.data?.user) {
       req.user = response.data.data.user;
+      req.token = token;
       next();
     } else {
       res.status(401).json({

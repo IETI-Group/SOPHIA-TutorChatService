@@ -6,5 +6,6 @@ export const env = {
     mcpServerUrl: process.env.MCP_SERVER_URL || "http://localhost:3000/mcp",
     courseServiceUrl: process.env.COURSE_SERVICE_URL || "http://localhost:3000/api/v1",
     authServiceUrl: process.env.AUTH_SERVICE_URL || "http://localhost:3001/api/v1",
+    coordinatorServiceUrl: process.env.COORDINATOR_SERVICE_URL || "http://localhost:3000/api/v1",
     serviceTimeout: Number(process.env.SERVICE_TIMEOUT) || 5000,
 }

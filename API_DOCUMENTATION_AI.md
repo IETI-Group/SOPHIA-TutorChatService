@@ -165,8 +165,9 @@ El endpoint de chat incluye una funcionalidad de **detección de intención** qu
 
 1. **Conversación Normal**: El usuario conversa con la IA sobre el curso que desea crear (temas, estructura, nivel, etc.)
 2. **Trigger de Creación**: Cuando el usuario está listo, envía un mensaje con una frase de activación
-3. **Agent Loop**: El sistema ejecuta automáticamente el bucle de agente que crea el curso, secciones, lecciones y contenido en el Course Service
-4. **Cambio de Tipo**: El chat se marca automáticamente como `chatType: "course"` y se guarda el `courseId`
+3. **Identificación del Creador**: El sistema extrae automáticamente el ID del usuario desde el token de autenticación (consultando al Coordinator Service) y lo asigna como creador del curso.
+4. **Agent Loop**: El sistema ejecuta automáticamente el bucle de agente que crea el curso, secciones, lecciones y contenido en el Course Service
+5. **Cambio de Tipo**: El chat se marca automáticamente como `chatType: "course"` y se guarda el `courseId`
 
 #### Frases de Activación (Triggers)
 
@@ -251,6 +252,31 @@ Cuando se crea un curso exitosamente, el documento del chat se actualiza con:
 |-------|-------|-------------|
 | `chatType` | `"course"` | Indica que este chat resultó en la creación de un curso |
 | `courseId` | `"eadd33af-..."` | ID del curso creado en el Course Service |
+
+#### Usuario Creator Automático (creatorId)
+
+El sistema obtiene automáticamente el ID del usuario creador desde el servicio de coordinador:
+
+1. **Token de Autenticación**: Se utiliza el token Bearer del header `Authorization`
+2. **Consulta al Coordinador**: Se realiza una solicitud GET a `/auth/me` en el coordinador
+3. **Extracción de userId**: Se obtiene el `id` del usuario autenticado
+4. **Inclusión en Curso**: El userId se incluye automáticamente como `creatorId` cuando el Agent Loop crea el curso
+
+**Flujo Automático:**
+
+```
+1. Cliente envía solicitud con token Bearer
+   ↓
+2. Middleware valida el token
+   ↓
+3. Controlador obtiene userId del coordinador
+   ↓
+4. Servicio pasa userId al Agent Loop
+   ↓
+5. Agent Loop incluye creatorId en create_course
+```
+
+**Nota**: Si la obtención del userId falla, el sistema continúa creando el curso pero sin el identificador del creador.
 
 #### Consultar Chats con Cursos Creados
 

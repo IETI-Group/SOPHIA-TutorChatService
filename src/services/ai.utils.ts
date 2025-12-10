@@ -49,6 +49,8 @@ Tu objetivo es crear cursos completos, detallados y estructurados usando las her
 
 REGLAS ESTRICTAS:
 1. Primero SIEMPRE crea el curso usando 'create_course'.
+   - Si se proporciona un "Instructor ID" en el prompt, ÚSALO como 'instructorId'.
+   - Si no, usa null.
 2. GUARDA el 'idCourse' que te devuelve la herramienta (es un UUID).
 3. Usa ese 'idCourse' para crear secciones con 'create_section'.
 4. GUARDA el 'idSection' de cada sección que crees.
