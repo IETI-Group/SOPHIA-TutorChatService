@@ -1,0 +1,23 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: sophia-coordinator-app
+    ports:
+      - ${PORT}:80
+    environment:
+      - PORT=${PORT}
+      - NODE_ENV=${NODE_ENV}
+      - LOG_LEVEL=${LOG_LEVEL}
+      - CORS_ORIGIN=${CORS_ORIGIN}
+      - AUTH_SERVICE_URL=${AUTH_SERVICE_URL}
+      - COORDINATOR_SERVICE_URL=${COORDINATOR_SERVICE_URL}
+      - MCP_SERVER_URL=${MCP_SERVER_URL}
+      - SERVICE_TIMEOUT=${SERVICE_TIMEOUT}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - MONGO_URI=${MONGO_URI}
+      - MCP_SERVER_URL=${MCP_SERVER_URL}
+    restart: unless-stopped
