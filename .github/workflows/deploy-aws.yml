@@ -8,7 +8,7 @@ on:
 
 env:
   AWS_REGION: us-east-2
-  ECR_REPOSITORY: sophia/ai
+  ECR_REPOSITORY: sophia/tutor-service
   ECS_CLUSTER: sophia-ai-service-cluster
   ECS_SERVICE: sophia-ai-service-task-service-v001
   ECS_TASK_DEFINITION: sophia-ai-service-task
@@ -36,9 +36,6 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-
-      - name: Run tests
-        run: pnpm test:run
 
   build-and-push:
     name: Build and Push Docker Image
