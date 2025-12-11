@@ -1,9 +1,8 @@
-import { config } from "dotenv";
+import "dotenv/config";
 import app from "./app.js";
 import { logger } from "./utils/logger.js";
+import { connectDatabase } from "./config/database.js";
 
-// Cargar variables de entorno
-config();
 
 const PORT = process.env.PORT || 3000;
 
@@ -23,15 +22,19 @@ process.on(
 );
 
 // Función para iniciar el servidor
-const startServer = (): void => {
+const startServer = async (): Promise<void> => {
   try {
+    // Conectar a la base de datos
+    await connectDatabase();
+    
     const server = app.listen(PORT, () => {
-      logger.info(`🚀 SOPHIA Tutor Chat Service started successfully`);
-      logger.info(`🌍 Environment: ${process.env.NODE_ENV || "development"}`);
-      logger.info(`📡 Server running on port ${PORT}`);
-      logger.info(`🔗 Health check: http://localhost:${PORT}/api/v1/health`);
-      logger.info(`🏠 Home: http://localhost:${PORT}/`);
+      console.log(`🚀 SOPHIA Tutor Chat Service started successfully`);
+      console.log(`📡 Server running on port ${PORT}`);
+      console.log(`🌍 Environment: ${process.env.NODE_ENV || "development"}`);
+      console.log(`🔗 Health check: http://localhost:${PORT}/api/v1/health`);
+      console.log(`🏠 Home: http://localhost:${PORT}/`);
     });
+    
 
     // Graceful shutdown
     const gracefulShutdown = (signal: string) => {
