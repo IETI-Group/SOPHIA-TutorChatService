@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { chatToCourseController } from '../controllers/chat-to-course.controller';
+import { chatToCourseController } from '../controllers/chat-to-course.controller.js';
 
 const router:Router = Router();
 

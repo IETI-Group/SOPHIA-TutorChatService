@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "nodemon",
     "build": "rm -rf dist && tsc",
-    "start": "node dist/src/server.js",
+    "start": "node dist/server.js",
     "format": "pnpm exec biome format --write",
     "lint": "pnpm exec biome lint --write",
     "check": "pnpm exec biome check --write",

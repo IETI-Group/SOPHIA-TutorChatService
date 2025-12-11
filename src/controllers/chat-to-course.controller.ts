@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
-import { aiService } from '../services/ai.service';
-import { logger } from '../utils/logger';
+import { aiService } from '../services/ai.service.js';
+import { logger } from '../utils/logger.js';
 
 /**
  * Controller para convertir chats de curso en cursos reales usando Agent Loop

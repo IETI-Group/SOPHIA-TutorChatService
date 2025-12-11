@@ -1,5 +1,5 @@
 import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse } from 'axios';
-import { env } from '../config/env';
+import { env } from '../config/env.js';
 
 export class HttpClientService {
   private readonly client: AxiosInstance;

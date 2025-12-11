@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import { aiService } from "../services/ai.service.js";
 import { coordinatorService } from "../services/coordinator.service.js";
-import { validateBody } from "../utils/validation";
+import { validateBody } from "../utils/validation.js";
 
 export class AIController {
 	async chat(req: Request, res: Response, next: NextFunction) {
