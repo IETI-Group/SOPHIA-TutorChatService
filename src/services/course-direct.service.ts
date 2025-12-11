@@ -1,5 +1,5 @@
-import { env } from '../config/env';
-import { logger } from '../utils/logger';
+import { env } from '../config/env.js';
+import { logger } from '../utils/logger.js';
 import crypto from 'crypto';
 
 /**

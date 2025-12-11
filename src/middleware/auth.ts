@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from 'express';
-import { HttpClientService } from '../services/http-client.service';
-import { env } from '../config/env';
+import { HttpClientService } from '../services/http-client.service.js';
+import { env } from '../config/env.js';
 import { logger } from '../utils/logger.js';
 
 declare global {

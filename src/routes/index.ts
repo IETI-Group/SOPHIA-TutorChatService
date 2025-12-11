@@ -1,11 +1,11 @@
 import { Router, type IRouter } from "express";
 import healthRoutes from "./health.js";
-import aiRoutes from "./ai.routes";
+import aiRoutes from "./ai.routes.js";
 import chatRoutes from "./chat.routes.js";
 import mcpRoutes from "./mcp.routes.js";
-import chatToCourseRoutes from "./chat-to-course.routes";
+import chatToCourseRoutes from "./chat-to-course.routes.js";
 import auth from "./auth.routes.js";
-import { authenticate } from "../middleware/auth";
+import { authenticate } from "../middleware/auth.js";
 
 const router: IRouter = Router();
 

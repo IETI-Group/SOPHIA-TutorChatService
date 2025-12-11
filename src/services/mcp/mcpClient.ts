@@ -1,7 +1,7 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { logger } from '../../utils/logger.js';
-import type { MCPToolCall, MCPToolResult } from './types';
+import type { MCPToolCall, MCPToolResult } from './types.js';
 
 /**
  * MCP Client for interacting with the SOPHIA Course Service

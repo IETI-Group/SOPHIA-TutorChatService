@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from 'express';
-import { authService } from '../services/auth.service';
+import { authService } from '../services/auth.service.js';
 
 export class AuthController {
   // Helper para construir la config de request con headers y query
